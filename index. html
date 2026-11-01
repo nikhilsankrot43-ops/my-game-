@@ -1,0 +1,153 @@
+
+
+
+<!DOCTYPE html>
+<html>
+<head>
+<title>Mini Battle Royale</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body {
+  margin:0;
+  background:#17212b;
+  color:white;
+  text-align:center;
+  font-family:Arial;
+}
+h2 { color:orange; }
+#game {
+  background:#477b43;
+  border:4px solid white;
+  display:block;
+  margin:auto;
+  max-width:95vw;
+}
+button {
+  padding:14px 22px;
+  margin:8px;
+  background:orange;
+  border:0;
+  border-radius:10px;
+  font-weight:bold;
+}
+</style>
+</head>
+<body>
+
+<h2>🔥 MINI BATTLE ROYALE</h2>
+<p>Score: <span id="score">0</span>
+ | ❤️ Health: <span id="health">100</span></p>
+
+<canvas id="game" width="350" height="500"></canvas>
+
+<div>
+<button onclick="move(-1,0)">⬅️</button>
+<button onclick="move(0,-1)">⬆️</button>
+<button onclick="shoot()">🔫 FIRE</button>
+<button onclick="move(0,1)">⬇️</button>
+<button onclick="move(1,0)">➡️</button>
+</div>
+
+<button onclick="restart()">RESTART GAME</button>
+
+<script>
+const c = document.getElementById("game");
+const ctx = c.getContext("2d");
+
+let player = {x:175,y:400};
+let enemies = [];
+let bullets = [];
+let score = 0;
+let health = 100;
+let over = false;
+
+function spawn() {
+ if(!over) enemies.push({
+   x:Math.random()*310+20,
+   y:Math.random()*120+20
+ });
+}
+setInterval(spawn,1500);
+
+function move(dx,dy) {
+ if(over) return;
+ player.x = Math.max(15,Math.min(335,player.x+dx*18));
+ player.y = Math.max(15,Math.min(485,player.y+dy*18));
+}
+
+function shoot() {
+ if(over) return;
+ bullets.push({x:player.x,y:player.y-15});
+}
+
+function draw() {
+ ctx.clearRect(0,0,350,500);
+
+ // Player
+ ctx.fillStyle="blue";
+ ctx.fillRect(player.x-12,player.y-12,24,24);
+
+ // Bullets
+ ctx.fillStyle="yellow";
+ bullets.forEach(b=>{
+   b.y-=7;
+   ctx.fillRect(b.x-3,b.y-8,6,12);
+ });
+
+ // Enemies
+ ctx.fillStyle="red";
+ enemies.forEach(e=>{
+   e.y+=0.7;
+   ctx.fillRect(e.x-12,e.y-12,24,24);
+ });
+
+ // Collision
+ bullets.forEach((b,bi)=>{
+   enemies.forEach((e,ei)=>{
+     if(Math.abs(b.x-e.x)<17 &&
+        Math.abs(b.y-e.y)<17) {
+       enemies.splice(ei,1);
+       bullets.splice(bi,1);
+       score+=10;
+       document.getElementById("score").innerText=score;
+     }
+   });
+ });
+
+ enemies.forEach(e=>{
+   if(Math.abs(e.x-player.x)<20 &&
+      Math.abs(e.y-player.y)<20) {
+      health-=1;
+      document.getElementById("health").innerText=health;
+   }
+ });
+
+ bullets=bullets.filter(b=>b.y>0);
+
+ if(health<=0) {
+   over=true;
+   ctx.fillStyle="white";
+   ctx.font="28px Arial";
+   ctx.fillText("GAME OVER!",85,250);
+ }
+
+ if(!over) requestAnimationFrame(draw);
+}
+
+function restart() {
+ player={x:175,y:400};
+ enemies=[];
+ bullets=[];
+ score=0;
+ health=100;
+ over=false;
+ document.getElementById("score").innerText=0;
+ document.getElementById("health").innerText=100;
+ draw();
+}
+
+draw();
+</script>
+</body>
+</html>
+
